@@ -42,7 +42,7 @@
                     logMessage("✅ Camera access granted.");
                     videoElement.srcObject = stream;
                     videoElement.play();
-                    setTimeout(startScanner, 2000); // Wait for camera to fully start
+                    setTimeout(startScanner, 2000); // Delay to ensure camera is ready
                 })
                 .catch(error => {
                     logMessage("❌ Camera access failed: " + error.message);
@@ -52,13 +52,18 @@
 
         // Start Barcode Scanner
         function startScanner() {
-            logMessage("🔵 Initializing barcode scanner...");
+            logMessage("🔵 Checking ZXing library...");
 
-            if (!ZXing || !ZXing.BrowserBarcodeReader) {
-                logMessage("❌ ZXing library failed to initialize!");
+            if (!window.ZXing) {
+                logMessage("❌ ZXing library is not loaded!");
+                return;
+            }
+            if (!ZXing.BrowserBarcodeReader) {
+                logMessage("❌ ZXing.BrowserBarcodeReader is undefined!");
                 return;
             }
 
+            logMessage("✅ ZXing Library Found. Initializing Scanner...");
             codeReader = new ZXing.BrowserBarcodeReader();
             logMessage("✅ ZXing Scanner Initialized.");
 
