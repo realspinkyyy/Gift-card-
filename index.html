@@ -21,7 +21,10 @@
         <h2>Gift Card Scanner</h2>
         <input type="text" id="barcodeInput" placeholder="Enter or scan barcode" maxlength="16">
         <button class="check-btn" onclick="checkBalance()">Check Balance</button>
-        <button class="topup-btn" onclick="topUpBalance()">Top Up (£10)</button>
+        
+        <input type="number" id="topUpAmount" placeholder="Top-up Amount (£)" min="1">
+        <button class="topup-btn" onclick="topUpBalance()">Top Up</button>
+
         <div class="message" id="message"></div>
         <div id="scanner"></div>
     </div>
@@ -71,12 +74,17 @@
 
         function topUpBalance() {
             let barcodeInput = document.getElementById("barcodeInput").value;
+            let topUpAmount = parseFloat(document.getElementById("topUpAmount").value);
             if (!isValidBarcode(barcodeInput)) {
                 showMessage("Invalid barcode! Must be 16 digits.", "red");
                 return;
             }
+            if (isNaN(topUpAmount) || topUpAmount <= 0) {
+                showMessage("Please enter a valid amount to top-up.", "red");
+                return;
+            }
             let balance = parseFloat(localStorage.getItem(barcodeInput) || 0);
-            balance += 10;
+            balance += topUpAmount;
             localStorage.setItem(barcodeInput, balance);
             showMessage("Balance topped up! New Balance: £" + balance, "green");
         }
