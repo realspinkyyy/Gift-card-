@@ -5,37 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Debugging Barcode Scanner</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 10px;
-        }
-        #scanner {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-            border: 2px solid black;
-            margin-bottom: 20px;
-        }
-        #barcodeData {
-            font-size: 18px;
-            font-weight: bold;
-            color: green;
-            margin-top: 20px;
-        }
-        #debugConsole {
-            text-align: left;
-            font-size: 14px;
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background: #f9f9f9;
-            height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 10px; }
+        #scanner { width: 100%; max-width: 400px; height: auto; border: 2px solid black; margin-bottom: 20px; }
+        #barcodeData { font-size: 18px; font-weight: bold; color: green; margin-top: 20px; }
+        #debugConsole { text-align: left; font-size: 14px; width: 100%; max-width: 600px; margin: 20px auto; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; height: 300px; overflow-y: auto; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -45,12 +18,10 @@
     <h2>🛠 Debug Console</h2>
     <div id="debugConsole">Logs will appear here...</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
         const videoElement = document.getElementById('scanner');
         const barcodeDataElement = document.getElementById('barcodeData');
         const debugConsole = document.getElementById('debugConsole');
-        const codeReader = new ZXing.BrowserBarcodeReader();
 
         function logMessage(message) {
             console.log(message);
@@ -69,7 +40,6 @@
                     logMessage("✅ Camera access granted.");
                     videoElement.srcObject = stream;
                     videoElement.play();
-                    startScanner(); // Start scanner AFTER camera is working
                 })
                 .catch(error => {
                     logMessage("❌ Camera access failed: " + error.message);
@@ -77,36 +47,10 @@
                 });
         }
 
-        // Start Barcode Scanner
-        function startScanner() {
-            logMessage("🔵 Initializing barcode scanner...");
-
-            if (!codeReader) {
-                logMessage("❌ Scanner library failed to load!");
-                return;
-            }
-
-            codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-                if (result) {
-                    barcodeDataElement.textContent = `📦 Barcode Data: ${result.text}`;
-                    logMessage("✅ Barcode Scanned: " + result.text);
-                } 
-                if (err) {
-                    if (err instanceof ZXing.NotFoundException) {
-                        logMessage("⚠️ No barcode found in frame...");
-                    } else {
-                        logMessage("❌ Scanner error: " + err.message);
-                    }
-                }
-            }).then(() => {
-                logMessage("✅ Scanner started successfully!");
-            }).catch(error => {
-                logMessage("❌ Scanner failed to start: " + error.message);
-            });
-        }
-
-        // Start camera when the page loads
+        // Run Permission Check First
         startCamera();
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest" onload="logMessage('✅ ZXing Library Loaded!');" onerror="logMessage('❌ ZXing Library Failed to Load!');"></script>
 </body>
 </html>
