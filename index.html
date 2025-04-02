@@ -35,29 +35,28 @@
         const barcodeDataElement = document.getElementById('barcodeData');
         const videoElement = document.getElementById('scanner');
 
-        // Get user media (camera access)
-        navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" } // Try using the back camera
-        }).then((stream) => {
-            videoElement.srcObject = stream;  // Set video stream source
+        // Try to get user media and start scanning
+        async function startScanner() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                videoElement.srcObject = stream; // Set the video stream to the element
 
-            // Start decoding the barcode
-            function startScanning() {
+                // Decode barcode from video stream
                 codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
                     if (result) {
-                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display barcode data
+                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display barcode result
                     }
                     if (err && !(err instanceof ZXing.NotFoundException)) {
                         console.error(err);
                     }
                 });
+            } catch (error) {
+                console.error("Error accessing the camera:", error);
+                barcodeDataElement.textContent = "Unable to access camera. Please allow camera access.";
             }
+        }
 
-            startScanning(); // Start scanning
-        }).catch((error) => {
-            console.error("Error accessing camera:", error);
-            barcodeDataElement.textContent = "Unable to access camera. Please allow camera access.";
-        });
+        startScanner(); // Start the scanner
     </script>
 </body>
 </html>
