@@ -44,7 +44,7 @@
                 setTimeout(() => {
                     window.ZXing = ZXing;  // Ensure global access
                     logMessage("✅ ZXing assigned to window.ZXing!");
-                    callback();
+                    callback();  // Callback to start camera
                 }, 1000); // Delay to ensure Safari registers it
             };
             script.onerror = function () {
@@ -72,13 +72,13 @@
 
         // Retry camera access every 5 seconds with countdown
         function retryCamera() {
+            logMessage(`🔵 Retrying camera in ${retryCountdown} seconds...`);
             if (retryCountdown > 0) {
-                logMessage(`🔵 Retrying camera in ${retryCountdown} seconds...`);
                 retryCountdown--;
                 setTimeout(retryCamera, 1000);  // Retry countdown every second
             } else {
-                logMessage("🔵 Retrying camera access...");
                 retryCountdown = 5;  // Reset countdown
+                logMessage("🔵 Retrying camera access...");
                 startCamera();  // Retry camera access
             }
         }
