@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Card Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 10px; width: 300px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .check-btn { background: #007bff; color: white; }
+        .topup-btn { background: #28a745; color: white; }
+        .message { margin-top: 15px; font-size: 16px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Gift Card Scanner</h2>
+        <input type="text" id="barcodeInput" placeholder="Enter or scan barcode" maxlength="16">
+        <button class="check-btn" onclick="checkBalance()">Check Balance</button>
+        <button class="topup-btn" onclick="topUpBalance()">Top Up (£10)</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        function checkBalance() {
+            let barcode = document.getElementById("barcodeInput").value;
+            if (!isValidBarcode(barcode)) {
+                showMessage("Invalid barcode! Must be 16 digits.", "red");
+                return;
+            }
+            let balance = localStorage.getItem(barcode) || 0;
+            showMessage("Balance: £" + balance, "black");
+        }
+
+        function topUpBalance() {
+            let barcode = document.getElementById("barcodeInput").value;
+            if (!isValidBarcode(barcode)) {
+                showMessage("Invalid barcode! Must be 16 digits.", "red");
+                return;
+            }
+            let balance = parseFloat(localStorage.getItem(barcode) || 0);
+            balance += 10;
+            localStorage.setItem(barcode, balance);
+            showMessage("Balance topped up! New Balance: £" + balance, "green");
+        }
+
+        function isValidBarcode(code) {
+            return /^\d{16}$/.test(code);
+        }
+
+        function showMessage(msg, color) {
+            let messageDiv = document.getElementById("message");
+            messageDiv.innerHTML = msg;
+            messageDiv.style.color = color;
+        }
+    </script>
+
+</body>
+</html>
