@@ -26,40 +26,37 @@
 </head>
 <body>
     <h1>Barcode Scanner</h1>
-    <video id="scanner" autoplay></video>
+    <video id="scanner" autoplay playsinline></video>
     <div id="barcodeData">Scan a barcode to see the result.</div>
 
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
         const codeReader = new ZXing.BrowserBarcodeReader();
         const barcodeDataElement = document.getElementById('barcodeData');
         const videoElement = document.getElementById('scanner');
 
-        // Start the video stream for barcode scanning
+        // Get user media (camera access)
         navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: "environment" // Use the back camera (on mobile devices)
-            }
+            video: { facingMode: "environment" } // Try using the back camera
         }).then((stream) => {
-            videoElement.srcObject = stream; // Attach the video stream to the <video> element
+            videoElement.srcObject = stream;  // Set video stream source
 
-            // Start decoding the barcode from the video stream
-            const decodeFromStream = async () => {
-                try {
-                    const result = await codeReader.decodeOnceFromVideoDevice(null, videoElement);
+            // Start decoding the barcode
+            function startScanning() {
+                codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
                     if (result) {
-                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display the barcode data
+                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display barcode data
                     }
-                } catch (err) {
-                    // If no barcode is detected or if an error occurs
-                    barcodeDataElement.textContent = 'Scan a barcode to see the result.';
-                }
-            };
+                    if (err && !(err instanceof ZXing.NotFoundException)) {
+                        console.error(err);
+                    }
+                });
+            }
 
-            // Continuously scan the video stream
-            setInterval(decodeFromStream, 1000);
+            startScanning(); // Start scanning
         }).catch((error) => {
-            console.error("Error accessing the camera:", error);
+            console.error("Error accessing camera:", error);
+            barcodeDataElement.textContent = "Unable to access camera. Please allow camera access.";
         });
     </script>
 </body>
