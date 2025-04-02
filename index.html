@@ -31,32 +31,41 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
-        const codeReader = new ZXing.BrowserBarcodeReader();
         const barcodeDataElement = document.getElementById('barcodeData');
         const videoElement = document.getElementById('scanner');
 
-        // Try to get user media and start scanning
-        async function startScanner() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                videoElement.srcObject = stream; // Set the video stream to the element
+        // Initialize the ZXing barcode reader
+        const codeReader = new ZXing.BrowserBarcodeReader();
 
-                // Decode barcode from video stream
-                codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-                    if (result) {
-                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display barcode result
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error(err);
-                    }
+        // Try to access camera and handle video stream
+        function startScanner() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    videoElement.srcObject = stream;  // Display the video feed in the video element
+                    videoElement.play();  // Start playing the video stream
+
+                    // Start scanning the video feed for barcodes
+                    codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                        if (result) {
+                            barcodeDataElement.textContent = `Barcode Data: ${result.text}`;  // Display barcode data
+                        }
+                        if (err && !(err instanceof ZXing.NotFoundException)) {
+                            console.error(err); // Log any errors except when no barcode is found
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Camera error:', error);  // Log error if camera fails
+                    barcodeDataElement.textContent = 'Unable to access camera. Please allow access.';
                 });
-            } catch (error) {
-                console.error("Error accessing the camera:", error);
-                barcodeDataElement.textContent = "Unable to access camera. Please allow camera access.";
-            }
         }
 
-        startScanner(); // Start the scanner
+        // Check if the page is being served over HTTPS, which is required for getUserMedia
+        if (window.location.protocol !== 'https:') {
+            barcodeDataElement.textContent = 'This page needs to be served over HTTPS to access the camera.';
+        } else {
+            startScanner();  // Start the barcode scanner if HTTPS is valid
+        }
     </script>
 </body>
 </html>
