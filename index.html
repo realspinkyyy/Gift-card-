@@ -35,13 +35,25 @@
         const barcodeDataElement = document.getElementById('barcodeData');
         const videoElement = document.getElementById('scanner');
 
-        codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-            if (result) {
-                barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display the barcode data
+        // Start the video stream for barcode scanning
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "environment" // Use the back camera (on mobile devices)
             }
-            if (err) {
-                console.error(err);
-            }
+        }).then((stream) => {
+            videoElement.srcObject = stream; // Attach the video stream to the <video> element
+
+            // Start decoding the barcode from the video stream
+            codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                if (result) {
+                    barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display the barcode data
+                }
+                if (err) {
+                    // Handle error (e.g., no barcode found, camera issues)
+                }
+            });
+        }).catch((error) => {
+            console.error("Error accessing the camera:", error);
         });
     </script>
 </body>
