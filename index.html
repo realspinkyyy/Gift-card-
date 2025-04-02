@@ -40,7 +40,11 @@
             script.src = "https://cdn.jsdelivr.net/npm/@zxing/library@latest";
             script.onload = function () {
                 logMessage("✅ ZXing library loaded!");
-                callback();
+                setTimeout(() => {
+                    window.ZXing = ZXing;  // Ensure global access
+                    logMessage("✅ ZXing assigned to window.ZXing!");
+                    callback();
+                }, 1000); // Delay to ensure Safari registers it
             };
             script.onerror = function () {
                 logMessage("❌ ZXing library failed to load!");
@@ -69,7 +73,7 @@
             logMessage("🔵 Checking ZXing library...");
 
             if (!window.ZXing) {
-                logMessage("❌ ZXing library is still not loaded!");
+                logMessage("❌ ZXing library is still not loaded (even after delay)!");
                 return;
             }
             if (!ZXing.BrowserBarcodeReader) {
