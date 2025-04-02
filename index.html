@@ -18,7 +18,6 @@
     <h2>🛠 Debug Console</h2>
     <div id="debugConsole">Logs will appear here...</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
         const videoElement = document.getElementById('scanner');
         const barcodeDataElement = document.getElementById('barcodeData');
@@ -34,6 +33,21 @@
         // Log that the script is running
         logMessage("🔄 Script is running...");
 
+        // Dynamically load ZXing library
+        function loadZXingLibrary(callback) {
+            logMessage("🔵 Loading ZXing library...");
+            const script = document.createElement("script");
+            script.src = "https://cdn.jsdelivr.net/npm/@zxing/library@latest";
+            script.onload = function () {
+                logMessage("✅ ZXing library loaded!");
+                callback();
+            };
+            script.onerror = function () {
+                logMessage("❌ ZXing library failed to load!");
+            };
+            document.head.appendChild(script);
+        }
+
         // Start Camera Function
         function startCamera() {
             logMessage("🔵 Requesting camera access...");
@@ -42,7 +56,7 @@
                     logMessage("✅ Camera access granted.");
                     videoElement.srcObject = stream;
                     videoElement.play();
-                    setTimeout(startScanner, 2000); // Delay to ensure camera is ready
+                    setTimeout(startScanner, 2000); // Wait for camera
                 })
                 .catch(error => {
                     logMessage("❌ Camera access failed: " + error.message);
@@ -55,7 +69,7 @@
             logMessage("🔵 Checking ZXing library...");
 
             if (!window.ZXing) {
-                logMessage("❌ ZXing library is not loaded!");
+                logMessage("❌ ZXing library is still not loaded!");
                 return;
             }
             if (!ZXing.BrowserBarcodeReader) {
@@ -86,8 +100,8 @@
             });
         }
 
-        // Run camera setup on page load
-        startCamera();
+        // Load ZXing first, then start the camera
+        loadZXingLibrary(startCamera);
     </script>
 </body>
 </html>
