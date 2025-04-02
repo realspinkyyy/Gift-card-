@@ -44,14 +44,20 @@
             videoElement.srcObject = stream; // Attach the video stream to the <video> element
 
             // Start decoding the barcode from the video stream
-            codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-                if (result) {
-                    barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display the barcode data
+            const decodeFromStream = async () => {
+                try {
+                    const result = await codeReader.decodeOnceFromVideoDevice(null, videoElement);
+                    if (result) {
+                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`; // Display the barcode data
+                    }
+                } catch (err) {
+                    // If no barcode is detected or if an error occurs
+                    barcodeDataElement.textContent = 'Scan a barcode to see the result.';
                 }
-                if (err) {
-                    // Handle error (e.g., no barcode found, camera issues)
-                }
-            });
+            };
+
+            // Continuously scan the video stream
+            setInterval(decodeFromStream, 1000);
         }).catch((error) => {
             console.error("Error accessing the camera:", error);
         });
