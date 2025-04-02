@@ -18,10 +18,12 @@
     <h2>🛠 Debug Console</h2>
     <div id="debugConsole">Logs will appear here...</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
         const videoElement = document.getElementById('scanner');
         const barcodeDataElement = document.getElementById('barcodeData');
         const debugConsole = document.getElementById('debugConsole');
+        let codeReader;
 
         function logMessage(message) {
             console.log(message);
@@ -40,6 +42,7 @@
                     logMessage("✅ Camera access granted.");
                     videoElement.srcObject = stream;
                     videoElement.play();
+                    setTimeout(startScanner, 2000); // Wait for camera to fully start
                 })
                 .catch(error => {
                     logMessage("❌ Camera access failed: " + error.message);
@@ -47,10 +50,39 @@
                 });
         }
 
-        // Run Permission Check First
+        // Start Barcode Scanner
+        function startScanner() {
+            logMessage("🔵 Initializing barcode scanner...");
+
+            if (!ZXing || !ZXing.BrowserBarcodeReader) {
+                logMessage("❌ ZXing library failed to initialize!");
+                return;
+            }
+
+            codeReader = new ZXing.BrowserBarcodeReader();
+            logMessage("✅ ZXing Scanner Initialized.");
+
+            codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                if (result) {
+                    barcodeDataElement.textContent = `📦 Barcode Data: ${result.text}`;
+                    logMessage("✅ Barcode Scanned: " + result.text);
+                } 
+                if (err) {
+                    if (err instanceof ZXing.NotFoundException) {
+                        logMessage("⚠️ No barcode found in frame...");
+                    } else {
+                        logMessage("❌ Scanner error: " + err.message);
+                    }
+                }
+            }).then(() => {
+                logMessage("✅ Scanner started successfully!");
+            }).catch(error => {
+                logMessage("❌ Scanner failed to start: " + error.message);
+            });
+        }
+
+        // Run camera setup on page load
         startCamera();
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest" onload="logMessage('✅ ZXing Library Loaded!');" onerror="logMessage('❌ ZXing Library Failed to Load!');"></script>
 </body>
 </html>
