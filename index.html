@@ -23,6 +23,7 @@
         const barcodeDataElement = document.getElementById('barcodeData');
         const debugConsole = document.getElementById('debugConsole');
         let codeReader;
+        let retryCountdown = 5;
 
         function logMessage(message) {
             console.log(message);
@@ -52,7 +53,7 @@
             document.head.appendChild(script);
         }
 
-        // Start Camera Function
+        // Start Camera Function with retry mechanism
         function startCamera() {
             logMessage("🔵 Requesting camera access...");
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -65,7 +66,21 @@
                 .catch(error => {
                     logMessage("❌ Camera access failed: " + error.message);
                     barcodeDataElement.textContent = "Camera access failed! Error: " + error.message;
+                    retryCamera();  // Retry if the camera fails to load
                 });
+        }
+
+        // Retry camera access every 5 seconds with countdown
+        function retryCamera() {
+            if (retryCountdown > 0) {
+                logMessage(`🔵 Retrying camera in ${retryCountdown} seconds...`);
+                retryCountdown--;
+                setTimeout(retryCamera, 1000);  // Retry countdown every second
+            } else {
+                logMessage("🔵 Retrying camera access...");
+                retryCountdown = 5;  // Reset countdown
+                startCamera();  // Retry camera access
+            }
         }
 
         // Start Barcode Scanner
