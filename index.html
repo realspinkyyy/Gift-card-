@@ -12,6 +12,7 @@
         .check-btn { background: #007bff; color: white; }
         .topup-btn { background: #28a745; color: white; }
         .message { margin-top: 15px; font-size: 16px; font-weight: bold; }
+        #scanner { width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -22,28 +23,61 @@
         <button class="check-btn" onclick="checkBalance()">Check Balance</button>
         <button class="topup-btn" onclick="topUpBalance()">Top Up (£10)</button>
         <div class="message" id="message"></div>
+        <div id="scanner"></div>
     </div>
 
+    <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
     <script>
+        let barcode = "";
+
+        // Initialize Quagga scanner
+        function startScanner() {
+            Quagga.init({
+                inputStream: {
+                    type: "LiveStream",
+                    constraints: {
+                        facingMode: "environment"
+                    },
+                    target: document.querySelector("#scanner")
+                },
+                decoder: {
+                    readers: ["ean_reader"]  // Barcode reader
+                }
+            }, function (err) {
+                if (err) {
+                    console.log(err);
+                    alert("Error initializing scanner");
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function (result) {
+                barcode = result.codeResult.code;
+                document.getElementById("barcodeInput").value = barcode;
+                Quagga.stop();  // Stop scanner once barcode is detected
+            });
+        }
+
         function checkBalance() {
-            let barcode = document.getElementById("barcodeInput").value;
-            if (!isValidBarcode(barcode)) {
+            let barcodeInput = document.getElementById("barcodeInput").value;
+            if (!isValidBarcode(barcodeInput)) {
                 showMessage("Invalid barcode! Must be 16 digits.", "red");
                 return;
             }
-            let balance = localStorage.getItem(barcode) || 0;
+            let balance = localStorage.getItem(barcodeInput) || 0;
             showMessage("Balance: £" + balance, "black");
         }
 
         function topUpBalance() {
-            let barcode = document.getElementById("barcodeInput").value;
-            if (!isValidBarcode(barcode)) {
+            let barcodeInput = document.getElementById("barcodeInput").value;
+            if (!isValidBarcode(barcodeInput)) {
                 showMessage("Invalid barcode! Must be 16 digits.", "red");
                 return;
             }
-            let balance = parseFloat(localStorage.getItem(barcode) || 0);
+            let balance = parseFloat(localStorage.getItem(barcodeInput) || 0);
             balance += 10;
-            localStorage.setItem(barcode, balance);
+            localStorage.setItem(barcodeInput, balance);
             showMessage("Balance topped up! New Balance: £" + balance, "green");
         }
 
@@ -56,6 +90,9 @@
             messageDiv.innerHTML = msg;
             messageDiv.style.color = color;
         }
+
+        // Start the scanner when the page loads
+        startScanner();
     </script>
 
 </body>
