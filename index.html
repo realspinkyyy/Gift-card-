@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debugging Camera</title>
+    <title>Debugging Barcode Scanner</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,16 +39,18 @@
     </style>
 </head>
 <body>
-    <h1>🔍 Debugging Camera Access</h1>
+    <h1>🔍 Debugging Barcode Scanner</h1>
     <video id="scanner" autoplay playsinline></video>
     <div id="barcodeData">Waiting for barcode scan...</div>
     <h2>🛠 Debug Console</h2>
     <div id="debugConsole">Logs will appear here...</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
         const videoElement = document.getElementById('scanner');
         const barcodeDataElement = document.getElementById('barcodeData');
         const debugConsole = document.getElementById('debugConsole');
+        const codeReader = new ZXing.BrowserBarcodeReader();
 
         function logMessage(message) {
             console.log(message);
@@ -59,33 +61,6 @@
         // Log that the script is running
         logMessage("🔄 Script is running...");
 
-        // Check if mediaDevices API exists
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            logMessage("❌ navigator.mediaDevices.getUserMedia is NOT available!");
-            barcodeDataElement.textContent = "Camera API is not supported. Try updating iOS or check Safari settings.";
-        } else {
-            logMessage("✅ Camera API is available.");
-        }
-
-        // Ask for camera permission manually
-        async function checkPermissions() {
-            logMessage("🔵 Checking camera permissions...");
-            try {
-                const permissions = await navigator.permissions.query({ name: 'camera' });
-                logMessage(`🔍 Permission Status: ${permissions.state}`);
-
-                if (permissions.state === 'denied') {
-                    logMessage("❌ Camera permission was denied! Go to Safari Settings > Camera > Allow.");
-                    barcodeDataElement.textContent = "Camera permission is denied! Go to Safari Settings > Camera > Allow.";
-                } else if (permissions.state === 'granted' || permissions.state === 'prompt') {
-                    logMessage("✅ Permission looks good. Requesting camera access...");
-                    startCamera();
-                }
-            } catch (error) {
-                logMessage("⚠️ Unable to check permissions: " + error.message);
-            }
-        }
-
         // Start Camera Function
         function startCamera() {
             logMessage("🔵 Requesting camera access...");
@@ -94,6 +69,7 @@
                     logMessage("✅ Camera access granted.");
                     videoElement.srcObject = stream;
                     videoElement.play();
+                    startScanner(); // Start scanner AFTER camera is working
                 })
                 .catch(error => {
                     logMessage("❌ Camera access failed: " + error.message);
@@ -101,8 +77,36 @@
                 });
         }
 
-        // Run Permission Check First
-        checkPermissions();
+        // Start Barcode Scanner
+        function startScanner() {
+            logMessage("🔵 Initializing barcode scanner...");
+
+            if (!codeReader) {
+                logMessage("❌ Scanner library failed to load!");
+                return;
+            }
+
+            codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                if (result) {
+                    barcodeDataElement.textContent = `📦 Barcode Data: ${result.text}`;
+                    logMessage("✅ Barcode Scanned: " + result.text);
+                } 
+                if (err) {
+                    if (err instanceof ZXing.NotFoundException) {
+                        logMessage("⚠️ No barcode found in frame...");
+                    } else {
+                        logMessage("❌ Scanner error: " + err.message);
+                    }
+                }
+            }).then(() => {
+                logMessage("✅ Scanner started successfully!");
+            }).catch(error => {
+                logMessage("❌ Scanner failed to start: " + error.message);
+            });
+        }
+
+        // Start camera when the page loads
+        startCamera();
     </script>
 </body>
 </html>
