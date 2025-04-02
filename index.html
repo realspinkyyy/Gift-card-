@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera Feed</title>
+    <title>Barcode Scanner</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,23 +16,44 @@
             border: 1px solid #000;
             margin-bottom: 20px;
         }
+        #barcodeData {
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Camera Feed</h1>
+    <h1>Barcode Scanner</h1>
     <video id="scanner" autoplay playsinline></video>
+    <div id="barcodeData">Scan a barcode to see the result.</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
     <script>
         const videoElement = document.getElementById('scanner');
+        const barcodeDataElement = document.getElementById('barcodeData');
+        const codeReader = new ZXing.BrowserBarcodeReader();
 
-        // Try to access the camera and show the video feed
+        // Start the camera
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
-                videoElement.srcObject = stream;  // Display the video feed in the video element
-                videoElement.play();  // Start the video feed
+                videoElement.srcObject = stream;
+                videoElement.play();
+                
+                // Start scanning for barcodes
+                codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                    if (result) {
+                        barcodeDataElement.textContent = `Barcode Data: ${result.text}`;  // Display barcode result
+                    }
+                    if (err && !(err instanceof ZXing.NotFoundException)) {
+                        console.error(err);
+                    }
+                });
             })
             .catch(error => {
-                console.error('Camera error:', error);  // Log error if camera fails
+                console.error('Camera error:', error);
+                barcodeDataElement.textContent = 'Unable to access camera. Please allow access.';
             });
     </script>
 </body>
